@@ -4,7 +4,7 @@ R implementation of I-WABA, an extension of classical WABA (Within-And-Between A
 
 ## Reference
 
-Wu, H.-M. (2026). I-WABA: Interval-based Within-And-Between Analysis. *Statistical Analysis and Data Mining*.
+Wu, H.-M. (2026). When Means Are Not Enough: Enriching Within-And-Between Analysis with Group Intervals. *Technical Report*.
 
 ## Method
 
