@@ -1,0 +1,2 @@
+"n_pairs","mean_abs_r_between_waba","mean_abs_r_between_int","mean_abs_weighted_between_waba","mean_abs_weighted_within_waba","mean_abs_weighted_between_int","mean_abs_weighted_within_int","proportion_between_dominant_waba","proportion_between_dominant_iwaba","consistency_rate_waba","consistency_rate_iwaba"
+1225,0.774378026348036,0.773201447224312,0.546660858363063,0.108136259829179,0.56657320114113,0.0984320417524324,0.975510204081633,0.979591836734694,0.975510204081633,0.979591836734694
