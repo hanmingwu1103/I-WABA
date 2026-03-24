@@ -1,66 +1,62 @@
-# I-WABA: Interval-based Within-And-Between Analysis
+# I-WABA: Interval-Based Within-And-Between Analysis
 
-R implementation of I-WABA, an extension of classical WABA (Within-And-Between Analysis) that incorporates within-group dispersion using Billard's endpoint covariance for interval-valued data.
+This repository contains the reproducible R workflows and manuscript materials
+for the I-WABA project. The current snapshot matches the fourth-revision (`R4`)
+manuscript bundle and the archived workflow used for the latest JRSSB revision
+cycle.
 
-## Reference
+## Repository Contents
 
-Wu, H.-M. (2026). I-WABA: Interval-Based Within-And-Between Analysis for Heterogeneous Group Dispersion. *Statistical Analysis and Data Mining: The ASA Data Science Journal*.
+- `iwaba_functions.R`: core I-WABA functions and summary helpers.
+- `iwaba_inference_helpers.R`: bootstrap and inference utilities.
+- `simulation_study.R`: main decomposition simulation study.
+- `simulation_inference.R`: fixed-`K` inferential simulation study.
+- `simulation_inference_robustness.R`: robustness study under skewness and imbalance.
+- `simulation_correlation_ordering_summary.R`: summary script for the covariance-vs-correlation ordering discussion.
+- `real_data_bh1996.R`: analysis of the `bh1996` multilevel benchmark dataset.
+- `real_data_14cancer.R`: analysis of the 14-Cancer gene-expression dataset.
+- `real_data_analysis.R`: legacy wrapper retained for convenience.
+- `data/`: datasets used by the real-data analyses.
+- `results/`: generated tables, summaries, figures, and supporting result objects.
+- `LaTeX/`: curated manuscript sources and figure files for the current `R4` paper bundle.
 
-## Method
+## Reproducing the Main Results
 
-Classical WABA decomposes total variance using group means only. I-WABA represents each group as an **interval-valued symbol** (center = group mean, radius = group SD) and applies Billard's endpoint covariance (Eq. 21) to capture both location and spread differences between groups.
+Run the scripts below from the repository root as needed.
 
-### Five-Level Analysis Framework
+1. `source("simulation_study.R")`
+2. `source("simulation_inference.R")`
+3. `source("simulation_inference_robustness.R")`
+4. `source("simulation_correlation_ordering_summary.R")`
+5. `source("real_data_bh1996.R")`
+6. `source("real_data_14cancer.R")`
 
-- **Level I (Entity Analysis):** Eta correlation ratios, E-test classification, information gain *G*, radius proportion.
-- **Level II (Functional Relationship):** Weighted correlation decomposition using augmented total, between-group interval, and within-group correlations.
-- **Level III (Consistency Check):** Agreement between Level I entity classification and Level II relationship dominance.
-- **Level IV (Dispersion-Source Diagnostics):** Center-only (*E_C*) vs radius-only (*E_R*) attribution, heterogeneity-focused companion (*E_{R,het}*) using centered radii.
-- **Level V (Dispersion Association):** Billard radius association (*r_R^Billard*) and heterogeneity-based radius correlation (*r_{R,het}*).
-
-### Key Formula (Billard's Endpoint Covariance)
-
-```
-V_R^(j) = (1/3) * sum_k w_k * s_kj^2
-```
-
-This uses the **uncentered second moment** of group radii (Eq. 21), not the centered covariance `Cov(R,R')` (Eq. 15). The Level IV diagnostic `V_{R,het}` uses centered radii to isolate genuine heteroscedasticity from magnitude effects.
-
-## Repository Structure
-
-```
-iwaba_functions.R        # Core I-WABA functions (Level I–V)
-simulation_study.R       # Simulation study (4 scenarios x K x n x p, Level I–V)
-real_data_bh1996.R       # bh1996 military dataset (K=99, Level I–V)
-real_data_14cancer.R     # 14-Cancer gene expression (K=14, Level I–V)
-real_data_analysis.R     # (Deprecated — see individual scripts above)
-data/                    # Datasets (14-cancer, bh1996)
-```
-
-## Usage
-
-```r
-source("iwaba_functions.R")
-
-# Full Level I–V analysis
-result <- iwaba_full(X, group_labels)
-print_iwaba_summary(result)
-
-# Access individual levels
-result$level1  # Entity analysis (info gain, eta, E-test)
-result$level2  # Functional relationships (weighted correlations)
-result$level3  # Consistency check
-result$level4  # Dispersion-source diagnostics (pi_R, E_R_het)
-result$level5  # Dispersion association (r_R_Billard, r_R_het)
-
-# Legacy wrapper (backward compatible)
-result <- iwaba_analysis(X, group_labels)
-```
+The scripts write their main outputs to `results/`. The committed files in
+`results/` are the manuscript versions used for this release snapshot.
 
 ## Dependencies
 
-`MASS`, `ggplot2`, `dplyr`, `tidyr`, `gridExtra`
+The main analyses rely on these R packages:
 
-## Author
+- `MASS`
+- `ggplot2`
+- `dplyr`
+- `tidyr`
+- `gridExtra`
+- `multilevel` (tested with version `2.7.1`)
 
-Han-Ming Wu, National Chengchi University
+## Manuscript Materials
+
+The current manuscript bundle is provided in `LaTeX/`, including:
+
+- `LaTeX/I-WABA_Wu_R4.tex`
+- `LaTeX/I-WABA_Wu_R4.bib`
+- `LaTeX/I-WABA_Wu_R4.pdf`
+
+The curated figure PDFs needed by `I-WABA_Wu_R4.tex` are included in the same
+folder so the manuscript can be rebuilt from the release snapshot.
+
+## Notes
+
+- The archived JRSSB revision workflow used `multilevel` version `2.7.1`, matching the manuscript bibliography.
+- The GitHub release history provides versioned snapshots of the code and manuscript materials used during the revision process.

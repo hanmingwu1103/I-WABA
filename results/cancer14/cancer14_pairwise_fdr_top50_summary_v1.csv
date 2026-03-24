@@ -1,0 +1,2 @@
+"branch","selection_rule","n_pairs","bootstrap_B","bootstrap_seed","checkpoint_file","checkpoint_every","resumed_from_checkpoint","delta_A_q_le_0_05","delta_A_q_le_0_10","r_R_het_q_le_0_05","r_R_het_q_le_0_10"
+"top50","Top 50 probes ranked by one-way ANOVA F statistic after variance filtering and global z-score normalization.",1225,399,20260321,"D:/08-MyProjects-new/04-I-WABA/05-I-WABA_20260330/I-WABA_Rproject/results/cancer14_pairwise_fdr_top50_checkpoint_v1.rds",25,FALSE,1022,1044,1025,1048

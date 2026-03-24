@@ -12,6 +12,120 @@
 ## `iwaba_functions.R` has already been sourced.
 ################################################################################
 
+iwaba_normalize_tag <- function(tag) {
+  if (is.null(tag) || !nzchar(tag)) {
+    return(NULL)
+  }
+
+  clean_tag <- gsub("[^A-Za-z0-9._-]+", "-", tag)
+  clean_tag <- gsub("(^-+|-+$)", "", clean_tag)
+
+  if (!nzchar(clean_tag)) NULL else clean_tag
+}
+
+iwaba_output_path <- function(filename,
+                              output_dir = "results",
+                              tag = NULL,
+                              create_dir = TRUE) {
+  tag <- iwaba_normalize_tag(tag)
+  dir_path <- if (is.null(output_dir) || !nzchar(output_dir)) "." else output_dir
+
+  if (create_dir && !dir.exists(dir_path)) {
+    dir.create(dir_path, recursive = TRUE, showWarnings = FALSE)
+  }
+
+  file_base <- basename(filename)
+  file_ext <- tools::file_ext(file_base)
+  file_stem <- if (nzchar(file_ext)) {
+    substr(file_base, 1, nchar(file_base) - nchar(file_ext) - 1L)
+  } else {
+    file_base
+  }
+
+  tagged_name <- if (is.null(tag)) {
+    file_base
+  } else if (nzchar(file_ext)) {
+    sprintf("%s_%s.%s", file_stem, tag, file_ext)
+  } else {
+    sprintf("%s_%s", file_stem, tag)
+  }
+
+  normalizePath(file.path(dir_path, tagged_name), winslash = "/", mustWork = FALSE)
+}
+
+iwaba_save_table_outputs <- function(object,
+                                     csv_filename,
+                                     output_dir = "results",
+                                     tag = NULL,
+                                     row.names = FALSE) {
+  csv_path <- iwaba_output_path(csv_filename, output_dir = output_dir, tag = tag)
+  write.csv(object, csv_path, row.names = row.names)
+
+  csv_base <- basename(csv_filename)
+  rds_base <- if (grepl("\\.csv$", csv_base, ignore.case = TRUE)) {
+    sub("\\.csv$", ".rds", csv_base, ignore.case = TRUE)
+  } else {
+    paste0(tools::file_path_sans_ext(csv_base), ".rds")
+  }
+  rds_path <- iwaba_output_path(rds_base, output_dir = output_dir, tag = tag)
+  saveRDS(object, rds_path)
+
+  list(csv = csv_path, rds = rds_path)
+}
+
+iwaba_open_pdf_device <- function(pdf_filename,
+                                  output_dir = "results",
+                                  tag = NULL,
+                                  ...) {
+  pdf_path <- iwaba_output_path(pdf_filename, output_dir = output_dir, tag = tag)
+  grDevices::pdf(pdf_path, ...)
+  invisible(pdf_path)
+}
+
+iwaba_flatten_metadata <- function(metadata) {
+  if (is.null(names(metadata)) || any(!nzchar(names(metadata)))) {
+    stop("Metadata must be a named list.")
+  }
+
+  rows <- lapply(seq_along(metadata), function(i) {
+    value <- metadata[[i]]
+    value_text <- if (length(value) == 0L) {
+      NA_character_
+    } else {
+      paste(as.character(value), collapse = "; ")
+    }
+
+    data.frame(
+      field = names(metadata)[i],
+      value = value_text,
+      stringsAsFactors = FALSE
+    )
+  })
+
+  do.call(rbind, rows)
+}
+
+iwaba_save_metadata <- function(metadata,
+                                metadata_filename,
+                                output_dir = "results",
+                                tag = NULL) {
+  metadata_table <- iwaba_flatten_metadata(metadata)
+  csv_base <- if (grepl("\\.csv$", basename(metadata_filename), ignore.case = TRUE)) {
+    basename(metadata_filename)
+  } else {
+    paste0(tools::file_path_sans_ext(basename(metadata_filename)), ".csv")
+  }
+  rds_base <- sub("\\.csv$", ".rds", csv_base, ignore.case = TRUE)
+
+  csv_path <- iwaba_output_path(csv_base, output_dir = output_dir, tag = tag)
+  rds_path <- iwaba_output_path(rds_base, output_dir = output_dir, tag = tag)
+
+  write.csv(metadata_table, csv_path, row.names = FALSE)
+  saveRDS(metadata, rds_path)
+
+  list(csv = csv_path, rds = rds_path)
+}
+
 iwaba_pair_labels <- function(pairs, varnames) {
   if (is.null(dim(pairs)) || ncol(pairs) == 0) {
     return(character(0))

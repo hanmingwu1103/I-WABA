@@ -47,12 +47,38 @@ classify_e <- function(E) {
 # =============================================================================
 # Level I: Entity Analysis
 # =============================================================================
+iwaba_radius_sd <- function(X_k, center = NULL) {
+  X_k <- as.matrix(X_k)
+  p <- ncol(X_k)
+
+  if (nrow(X_k) <= 1L) {
+    return(rep(0, p))
+  }
+
+  if (is.null(center)) {
+    center <- colMeans(X_k)
+  }
+
+  sqrt(colMeans(sweep(X_k, 2, center)^2))
+}
+
+iwaba_radius_iqr <- function(X_k, center = NULL, constant = 0.7413) {
+  X_k <- as.matrix(X_k)
+  p <- ncol(X_k)
+
+  if (nrow(X_k) <= 1L) {
+    return(rep(0, p))
+  }
+
+  constant * apply(X_k, 2, stats::IQR, na.rm = TRUE, type = 7)
+}
+
 #' Compute group-level quantities: centers, radii, weights
 #'
 #' @param X numeric matrix (n x p)
 #' @param g factor or vector of group labels (length n)
 #' @return list with centers (K x p), radii (K x p), n_k, w_k, K, p, n
-group_quantities <- function(X, g) {
+group_quantities <- function(X, g, radius_fn = iwaba_radius_sd, radius_name = "sd") {
   X <- as.matrix(X)
   n <- nrow(X)
   p <- ncol(X)
@@ -69,9 +95,12 @@ group_quantities <- function(X, g) {
     n_k[ki] <- length(idx)
     X_k <- X[idx, , drop = FALSE]
     centers[ki, ] <- colMeans(X_k)
-    # Population SD (ddof = 0)
-    if (n_k[ki] > 1) {
-      radii[ki, ] <- sqrt(colMeans(sweep(X_k, 2, centers[ki, ])^2))
+    if (n_k[ki] > 0L) {
+      radius_values <- radius_fn(X_k, centers[ki, ])
+      if (length(radius_values) != p) {
+        stop("radius_fn must return one radius per variable.")
+      }
+      radii[ki, ] <- as.numeric(radius_values)
     }
   }
 
@@ -80,7 +109,8 @@ group_quantities <- function(X, g) {
   rownames(radii)   <- groups
 
   list(centers = centers, radii = radii, n_k = n_k, w_k = w_k,
-       K = K, p = p, n = n, groups = groups)
+       K = K, p = p, n = n, groups = groups,
+       radius_name = radius_name)
 }
 
 
@@ -91,9 +121,9 @@ group_quantities <- function(X, g) {
 #' @param X numeric matrix (n x p) or data.frame
 #' @param g group labels
 #' @return list with Level I results
-iwaba_level1 <- function(X, g) {
+iwaba_level1 <- function(X, g, radius_fn = iwaba_radius_sd, radius_name = "sd") {
   X <- as.matrix(X)
-  gq <- group_quantities(X, g)
+  gq <- group_quantities(X, g, radius_fn = radius_fn, radius_name = radius_name)
   n <- gq$n; p <- gq$p; K <- gq$K
   w_k <- gq$w_k; centers <- gq$centers; radii <- gq$radii
 
@@ -166,6 +196,7 @@ iwaba_level1 <- function(X, g) {
     V_C = V_C, V_R = V_R, V_W = V_W,
     info_gain = info_gain,
     radius_prop = radius_prop,
+    radius_name = radius_name,
     eta_results = eta_results,
     gq = gq
   )
@@ -456,11 +487,11 @@ iwaba_level5 <- function(gq, s_bar) {
 #' @param X numeric matrix (n x p) or data.frame
 #' @param g group labels (factor or vector)
 #' @return list with results from all five levels
-iwaba_full <- function(X, g) {
+iwaba_full <- function(X, g, radius_fn = iwaba_radius_sd, radius_name = "sd") {
   X <- as.matrix(X)
 
   # Level I
-  l1 <- iwaba_level1(X, g)
+  l1 <- iwaba_level1(X, g, radius_fn = radius_fn, radius_name = radius_name)
 
   # Level IV
   l4 <- iwaba_level4(l1$gq, l1$V_C, l1$V_R, l1$V_W)
