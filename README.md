@@ -4,7 +4,7 @@ R implementation of I-WABA, an extension of classical WABA (Within-And-Between A
 
 ## Reference
 
-Wu, H.-M. (2026). I-WABA: Interval-Based Within-And-Between Analysis for Heterogeneous Group Dispersion. *Statistical Analysis and Data Mining: The ASA Data Science Journal*.
+Wu, H.-M. (2026). Interval-based within-and-between analysis: augmenting between-group covariance by within-group dispersion.
 
 ## Method
 
